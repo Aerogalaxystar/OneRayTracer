@@ -1,7 +1,16 @@
 # OneRayTracer
 
-## Finally Implemented book cover
+## Finally Implemented book cover along with Multi-Threaded Results
+| Threads Utilised  | Exectuion time |
+| ------------- | ------------- |
+| Single Threaded Execution  | 700 minutes  |
+| *Multi-Threaded Execution | 158 minutes  |
+
+   *Tested on 12 Threaded System of AMD Ryzen 5600H
+  
 ![Screenshot 2024-05-02 104531](https://github.com/Aerogalaxystar/OneRayTracer/assets/132094721/38cba697-c871-439c-8467-7c87f8232aa0)
+![Screenshot 2024-05-02 191428](https://github.com/Aerogalaxystar/OneRayTracer/assets/132094721/9058460e-e3ff-474d-ae64-0de6f3962026)
+
 
 ## First Part
 ![Screenshot 2024-04-30 110328](https://github.com/Aerogalaxystar/OneRayTracer/assets/132094721/0790420a-4a3a-422b-af51-170bcdfd7da7)
