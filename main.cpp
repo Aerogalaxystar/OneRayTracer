@@ -1,4 +1,6 @@
 #include<fstream>
+#include<iostream>
+#include<thread>
 #include "rtweekend.h"
 #include "hittable.h"
 #include "hittable_list.h"
@@ -20,20 +22,17 @@ int main() {
                 shared_ptr<material> sphere_material;
 
                 if (choose_mat < 0.8) {
-                    // diffuse
                     auto albedo = color::random() * color::random();
                     sphere_material = make_shared<lambertian>(albedo);
                     world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 }
                 else if (choose_mat < 0.95) {
-                    // metal
                     auto albedo = color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<metal>(albedo, fuzz);
                     world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 }
                 else {
-                    // glass
                     sphere_material = make_shared<dielectric>(1.5);
                     world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 }
@@ -65,5 +64,11 @@ int main() {
     cam.defocus_angle = 0.6;
     cam.focus_dist = 10.0;
 
-    cam.render(world);
+    //  multithreading
+    int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) num_threads = 1; 
+    std::cout << "Using " << num_threads << " threads for rendering.\n";
+    cam.render(world, num_threads);
+
+    return 0;
 }

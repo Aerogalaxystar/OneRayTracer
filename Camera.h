@@ -19,26 +19,51 @@ public:
 
     double defocus_angle = 0; 
     double focus_dist = 10;   
-    void render(const hittable& world)
-    {
+    void render(const hittable& world, int num_threads) {
         initialize();
+
         std::ofstream my_image("image.ppm");
         my_image << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-        for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-            for (int i = 0; i < image_width; i++) {
-                color pixel_color(0, 0, 0);
-                for (int sample = 0; sample < samples_per_pixel; sample++)
-                {
-                    ray r = get_ray(i, j);
-                    pixel_color += ray_color(r, max_depth,world);
-                }
+        std::vector<std::thread> threads(num_threads);
+        std::vector<std::vector<color>> partial_outputs(num_threads);
+
+        const int rows_per_thread = image_height / num_threads;
+
+        for (int i = 0; i < num_threads; ++i) {
+            int start_row = i * rows_per_thread;
+            int end_row = (i == num_threads - 1) ? image_height : (i + 1) * rows_per_thread;
+            partial_outputs[i].resize(image_width * (end_row - start_row));
+            threads[i] = std::thread(&camera::render_chunk, this, start_row, end_row, i, std::ref(partial_outputs[i]), std::cref(world));
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        for (const auto& partial_output : partial_outputs) {
+            for (const auto& pixel_color : partial_output) {
                 write_color(my_image, pixel_samples_scale * pixel_color);
             }
         }
-        std::clog << "\rDone.                 \n";
+
+        std::cout << "Done.\n";
     }
+
+    void render_chunk(int start_row, int end_row, int thread_index, std::vector<color>& output, const hittable& world) {
+    for (int j = start_row; j < end_row; j++) {
+        std::clog << "\rRemaining scanlines: " << (end_row - j) << std::flush;
+        for (int i = 0; i < image_width; i++) {
+            color pixel_color(0, 0, 0);
+            for (int sample = 0; sample < samples_per_pixel; sample++) {
+                ray r = get_ray(i, j);
+                pixel_color += ray_color(r, max_depth, world);
+            }
+            output[(j - start_row) * image_width + i] = pixel_color;
+        }
+    }
+    std::clog << "\rDone.                 \n";
+}
    private:
        int    image_height;  
        double pixel_samples_scale;
